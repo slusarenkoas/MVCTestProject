@@ -1,0 +1,72 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model IndexModel;
+
+@{
+    ViewData["Title"] = "Home Page";
+    var products = Model.Products;
+}
+
+<h1>Hello it's a Home page</h1>
+
+<table class="test-table">
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Actions</th>
+    </tr>
+
+    @foreach (var product in products)
+    {
+        <tr>
+            <td>@product.Id</td>
+            <td>@product.Name</td>
+            <td>@product.Description</td>
+            <td>@product.Price</td>
+            <td>@product.Count</td>
+            <td>
+                <form id="editForm_@product.Id" style="display: none;" action="@Url.Action("UpdateProduct")" method="post">
+                    <input type="hidden" name="Id" value="@product.Id" />
+                    Name:<br />
+                    <input type="text" placeholder="Введите имя" name="Name" value="@product.Name" /><br />
+                    Description:<br />
+                    <input type="text" placeholder="Введите описание" name="Description" value="@product.Description" /><br />
+                    Price:<br />
+                    <input type="number" placeholder="Введите цену" name="Price" value="@product.Price" /><br />
+                    Count:<br />
+                    <input type="number" placeholder="Введите количество" name="Count" value="@product.Count" /><br />
+                    <input type="submit" name="Update" /><br />
+                </form>
+                <button type="button" onclick="toggleForm('@product.Id')">✎</button>
+                <form action="@Url.Action("DeleteProduct")" method="post">
+                    <button type="submit" name="id" value="@product.Id">❌</button>
+                </form>
+            </td>
+        </tr>
+    }
+</table>
+
+<h3>Create Product</h3>
+<div class="text-center">
+    <form action="@Url.Action("CreateProduct","Home")" method="Post">
+        Name:<br/>
+        <input type="text" placeholder="Введите имя" name="Name" value="" /><br/>
+        Desccription:<br/>
+        <input type="text" placeholder="Введите описание" name="Description" value="" /><br/>
+        Price:<br/>
+        <input type="number" placeholder="Введите цену" name="Price" value="" /><br/>
+        Count:<br/>
+        <input type="number" placeholder="Введите количество" name="Count" value="" /><br/>
+        <input type="submit" name="Create"/><br/>
+    </form>
+</div>
+
+<script>
+    function toggleForm(productId) {
+        var form = document.getElementById("editForm_" + productId);
+        form.style.display = form.style.display === "none" ? "block" : "none";
+    }
+</script>
