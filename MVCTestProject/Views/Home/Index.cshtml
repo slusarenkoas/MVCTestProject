@@ -1,5 +1,4 @@
-﻿@using Microsoft.AspNetCore.Mvc.Rendering
-@using Microsoft.AspNetCore.Mvc.TagHelpers
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
 @model IndexModel;
 
 @{
@@ -7,66 +6,144 @@
     var products = Model.Products;
 }
 
-<h1>Hello it's a Home page</h1>
-
-<table class="test-table">
-    <tr>
-        <th>Id</th>
-        <th>Name</th>
-        <th>Description</th>
-        <th>Price</th>
-        <th>Quantity</th>
-        <th>Actions</th>
-    </tr>
-
-    @foreach (var product in products)
-    {
-        <tr>
-            <td>@product.Id</td>
-            <td>@product.Name</td>
-            <td>@product.Description</td>
-            <td>@product.Price</td>
-            <td>@product.Count</td>
-            <td>
-                <form id="editForm_@product.Id" style="display: none;" action="@Url.Action("UpdateProduct")" method="post">
-                    <input type="hidden" name="Id" value="@product.Id" />
-                    Name:<br />
-                    <input type="text" placeholder="Введите имя" name="Name" value="@product.Name" /><br />
-                    Description:<br />
-                    <input type="text" placeholder="Введите описание" name="Description" value="@product.Description" /><br />
-                    Price:<br />
-                    <input type="number" placeholder="Введите цену" name="Price" value="@product.Price" /><br />
-                    Count:<br />
-                    <input type="number" placeholder="Введите количество" name="Count" value="@product.Count" /><br />
-                    <input type="submit" name="Update" /><br />
-                </form>
-                <button type="button" onclick="toggleForm('@product.Id')">✎</button>
-                <form action="@Url.Action("DeleteProduct")" method="post">
-                    <button type="submit" name="id" value="@product.Id">❌</button>
-                </form>
-            </td>
-        </tr>
-    }
-</table>
-
-<h3>Create Product</h3>
 <div class="text-center">
-    <form action="@Url.Action("CreateProduct","Home")" method="Post">
-        Name:<br/>
-        <input type="text" placeholder="Введите имя" name="Name" value="" /><br/>
-        Desccription:<br/>
-        <input type="text" placeholder="Введите описание" name="Description" value="" /><br/>
-        Price:<br/>
-        <input type="number" placeholder="Введите цену" name="Price" value="" /><br/>
-        Count:<br/>
-        <input type="number" placeholder="Введите количество" name="Count" value="" /><br/>
-        <input type="submit" name="Create"/><br/>
-    </form>
+    <h1>Hello it's a Home page</h1>
+
+    <table class="test-table">
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+        </tr>
+
+        @for (var i = 0; i < products.Count; i++)
+        {
+            <tr>
+                <td>@products[i].Id</td>
+                <td><div id="name_text_@i">@products[i].Name</div></td>
+                <td><div id="description_text_@i">@products[i].Description</div></td>
+                <td><div id="price_text_@i">@products[i].Price</div></td>
+                <td><div id="count_text_@i">@products[i].Count</div></td>
+                <td>
+                    <button id="edit_button_@i" onclick="onEditClick(@i)">✎</button>
+                    <button onclick="onRefreshClick(@i)">⟳</button>
+                    
+                    <form action="@Url.Action("DeleteProduct")" method="post">
+                        <button type="submit" name="id" value="@products[i].Id">❌</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </table>
+
+    <h3>Create Product</h3>
+    <div class="text-center">
+        <form action="@Url.Action("CreateProduct", "Home")" method="Post">
+            Name:<br/>
+            <input type="text" placeholder="Введите имя" name="Name" value=""/><br/>
+            Desccription:<br/>
+            <input type="text" placeholder="Введите описание" name="Description" value=""/><br/>
+            Price:<br/>
+            <input type="number" placeholder="Введите цену" name="Price" value=""/><br/>
+            Count:<br/>
+            <input type="number" placeholder="Введите количество" name="Count" value=""/><br/>
+            <input type="submit" name="Create"/><br/>
+        </form>
+    </div>
 </div>
 
 <script>
-    function toggleForm(productId) {
-        var form = document.getElementById("editForm_" + productId);
-        form.style.display = form.style.display === "none" ? "block" : "none";
-    }
+
+async function onRefreshClick(i) {
+    let response = await fetch(`/controller/${i}`);
+    let product = await response.json();
+    
+    setProduct(i, product);
+}
+
+
+function onEditClick(i) {
+    createInput(i, "name");
+    createInput(i, "description");
+    createInput(i, "price");
+    createInput(i, "count");
+    
+    let editButton = document.getElementById(`edit_button_${i}`);
+    let sendButton = document.createElement("button");
+    sendButton.id = `send_button_${i}`;
+    sendButton.innerText = '✓';
+    sendButton.onclick = () => { onSendUpdateClick(i); }
+    
+    editButton.replaceWith(sendButton);
+}
+
+function createInput(i, elementName) {
+    let elementText = document.getElementById(`${elementName}_text_${i}`);
+    let elementInput = document.createElement("input");
+    elementInput.id = `${elementName}_input_${i}`;
+    elementInput.value = elementText.innerText;
+    elementText.innerHTML = "";
+    elementText.appendChild(elementInput);
+}
+
+async function onSendUpdateClick(id) {
+    let updatedProduct = getProduct(id);
+    let response = await fetch(`/controller/${id}`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body: JSON.stringify(updatedProduct)
+            });
+    let updateProductFromServer = await response.json();
+    
+    setProduct(id,updateProductFromServer);
+    
+    let sendButton = document.getElementById(`send_button_${id}`);
+    
+    let editButton = document.createElement("button");
+    editButton.id = `edit_button_${id}`;
+    editButton.innerText = "✎";
+    editButton.onclick = () => { onEditClick(id); }
+    
+    sendButton.replaceWith(editButton);
+}
+
+function getProduct(id) {
+    let nameInput = document.getElementById(`name_input_${id}`);
+            let name = nameInput.value;
+            
+            let descriptionInput = document.getElementById(`description_input_${id}`);
+            let description = descriptionInput.value;
+            
+            let priceInput = document.getElementById(`price_input_${id}`);
+            let price = priceInput.value;
+            
+            let countInput = document.getElementById(`count_input_${id}`);
+            let count = countInput.value;
+                    
+            return {
+                name, 
+                description,
+                price, 
+                count
+            };
+}
+
+function setProduct(id, product) {
+        let nameText = document.getElementById(`name_text_${id}`);
+                nameText.innerText = product.name;
+                
+                let descriptionText = document.getElementById(`description_text_${id}`);
+                descriptionText.innerText = product.description;
+                
+                let priceText = document.getElementById(`price_text_${id}`);
+              priceText.innerText = product.price;
+                
+                let countText = document.getElementById(`count_text_${id}`);
+         countText.innerText = product.count;
+}
 </script>

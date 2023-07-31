@@ -50,25 +50,6 @@ public class HomeController : Controller
     {
         return View();
     }
-    
-    [HttpPost("upgrade-product")]
-    public IActionResult UpdateProduct(int id,[FromForm] Product updatedProduct)
-    {
-        var productToUpdate = _products.Find(p => p.Id == id);
-        if (productToUpdate != null)
-        {
-            productToUpdate.Name = updatedProduct.Name;
-            productToUpdate.Description = updatedProduct.Description;
-            productToUpdate.Price = updatedProduct.Price;
-            productToUpdate.Count = updatedProduct.Count;
-        }
-        return RedirectToAction("Index");
-    }
-    
-    public IActionResult Table()
-    {
-        return View();
-    }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
