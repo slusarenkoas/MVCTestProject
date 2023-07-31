@@ -60,8 +60,16 @@
 async function onRefreshClick(i) {
     let response = await fetch(`/controller/${i}`);
     let product = await response.json();
-    
     setProduct(i, product);
+    
+    let sendButton = document.getElementById(`send_button_${i}`); 
+    if (sendButton){
+    let editButton = document.createElement("button");
+    editButton.id = `edit_button_${i}`;
+    editButton.innerText = "✎";
+    editButton.onclick = () => { onEditClick(i); }
+    
+    sendButton.replaceWith(editButton);}
 }
 
 
@@ -135,15 +143,16 @@ function getProduct(id) {
 
 function setProduct(id, product) {
         let nameText = document.getElementById(`name_text_${id}`);
-                nameText.innerText = product.name;
+        nameText.innerText = product.name;
+        
+        let descriptionText = document.getElementById(`description_text_${id}`);
+        descriptionText.innerText = product.description;
+        
+        let priceText = document.getElementById(`price_text_${id}`);
+        priceText.innerText = product.price;
                 
-                let descriptionText = document.getElementById(`description_text_${id}`);
-                descriptionText.innerText = product.description;
-                
-                let priceText = document.getElementById(`price_text_${id}`);
-              priceText.innerText = product.price;
-                
-                let countText = document.getElementById(`count_text_${id}`);
-         countText.innerText = product.count;
+        let countText = document.getElementById(`count_text_${id}`);
+        countText.innerText = product.count;
+        
 }
 </script>
