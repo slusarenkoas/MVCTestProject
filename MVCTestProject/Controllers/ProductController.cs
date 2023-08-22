@@ -6,24 +6,36 @@ namespace MVCTestProject.Controllers;
 [Route("controller")]
 public class ProductController : ControllerBase
 {
-    private static int _id = 1;
-    private static readonly List<Product> _products = new()
+    public static readonly List<Product> _products = new()
     {
-        new Product { Name = "Yes", Description = "No", Count = 50, Price = 30, Id = _id++},
-        new Product { Name = "Yes", Description = "No", Count = 50, Price = 30, Id = _id++ },
-        new Product { Name = "Yes", Description = "No", Count = 50, Price = 30, Id = _id++ },
+        new Product { Name = "Yes", Description = "No", Count = 50, Price = 30},
+        new Product { Name = "Yes", Description = "No", Count = 50, Price = 30},
+        new Product { Name = "Yes", Description = "No", Count = 50, Price = 30},
     };
 
     [HttpGet("{id}")]
-    public Product GetProduct([FromRoute] int id)
+    public ActionResult<Product> GetProduct([FromRoute] int id)
     {
         return _products[id];
     }
     
     [HttpPost("{id}")]
-    public Product SetProduct([FromRoute] int id, [FromBody] Product updatedProduct)
+    public ActionResult<Product> SetProduct([FromRoute] int id, [FromBody] Product updatedProduct)
     {
-        _products[id] = updatedProduct;
-        return _products[id];
+        return _products[id] = updatedProduct;
+    }
+    
+    [HttpDelete("{id}")]
+    public IActionResult DeleteProduct([FromRoute] int id)
+    {
+        _products.RemoveAt(id);
+        return RedirectToAction("Index", "Home");
+    }
+    
+    [HttpPost]
+    public ActionResult<Product> CreateProduct([FromBody] Product newProduct)
+    {
+        _products.Add(newProduct);
+        return newProduct;
     }
 }

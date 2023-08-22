@@ -7,9 +7,9 @@
 }
 
 <div class="text-center">
-    <h1>Hello it's a Home page</h1>
+    <h1>Work table with data</h1>
 
-    <table class="test-table">
+    <table class="work-table">
         <tr>
             <th>Id</th>
             <th>Name</th>
@@ -21,8 +21,8 @@
 
         @for (var i = 0; i < products.Count; i++)
         {
-            <tr>
-                <td>@products[i].Id</td>
+            <tr id="product_@i">
+                <td>@i</td>
                 <td><div id="name_text_@i">@products[i].Name</div></td>
                 <td><div id="description_text_@i">@products[i].Description</div></td>
                 <td><div id="price_text_@i">@products[i].Price</div></td>
@@ -30,32 +30,59 @@
                 <td>
                     <button id="edit_button_@i" onclick="onEditClick(@i)">✎</button>
                     <button onclick="onRefreshClick(@i)">⟳</button>
-                    
-                    <form action="@Url.Action("DeleteProduct")" method="post">
-                        <button type="submit" name="id" value="@products[i].Id">❌</button>
-                    </form>
+                    <button onclick="onDeleteClick(@i)">❌</button>
                 </td>
             </tr>
         }
     </table>
+</div>
 
-    <h3>Create Product</h3>
-    <div class="text-center">
-        <form action="@Url.Action("CreateProduct", "Home")" method="Post">
-            Name:<br/>
-            <input type="text" placeholder="Введите имя" name="Name" value=""/><br/>
-            Desccription:<br/>
-            <input type="text" placeholder="Введите описание" name="Description" value=""/><br/>
-            Price:<br/>
-            <input type="number" placeholder="Введите цену" name="Price" value=""/><br/>
-            Count:<br/>
-            <input type="number" placeholder="Введите количество" name="Count" value=""/><br/>
-            <input type="submit" name="Create"/><br/>
-        </form>
-    </div>
+<div>
+    <h1>Create new item in work table</h1>
+    <table class="create-table">
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+        </tr>
+
+        <tr>
+            <td>
+                <input type="text" placeholder="Input name" id="name_text_create" value=""/></td>
+            <td>
+                <input type="text" placeholder="Input description" id="description_text_create" value=""/></td>
+            <td>
+                <input type="number" placeholder="Input price" id="price_text_create" value=""/></td>
+            <td>
+                <input type="number" placeholder="Input count" id="count_text_create" value=""/></td>
+            <td>
+                <button id="create_button" onclick="onCreateClick()">Create</button>
+            </td>
+        </tr>
+    </table>
 </div>
 
 <script>
+
+async function onDeleteClick(id) {
+   let response = await fetch(`/controller/${id}`, {
+           method: "DELETE",
+           headers: {
+               'Content-Type': 'application/json;charset=utf-8'
+           }
+       });
+           // Success - Remove the row from the table
+       if (response.ok)
+       {
+            let deletedProductRow = document.getElementById(`product_${id}`);
+            deletedProductRow.remove();
+       }
+       else {
+       console.error(`Failed to delete product with ID ${id}`);
+       }
+}
 
 async function onRefreshClick(i) {
     let response = await fetch(`/controller/${i}`);
@@ -63,15 +90,16 @@ async function onRefreshClick(i) {
     setProduct(i, product);
     
     let sendButton = document.getElementById(`send_button_${i}`); 
-    if (sendButton){
+    
+    if (sendButton) {
     let editButton = document.createElement("button");
     editButton.id = `edit_button_${i}`;
     editButton.innerText = "✎";
-    editButton.onclick = () => { onEditClick(i); }
+    editButton.onclick = () => { onEditClick(i); 
+    }
     
     sendButton.replaceWith(editButton);}
 }
-
 
 function onEditClick(i) {
     createInput(i, "name");
@@ -96,6 +124,34 @@ function createInput(i, elementName) {
     elementText.innerHTML = "";
     elementText.appendChild(elementInput);
 }
+
+async function onCreateClick() {
+        let inputName = document.getElementById('name_text_create').value;
+        let inputDescription = document.getElementById('description_text_create').value;
+        let inputPrice = document.getElementById('price_text_create').value;
+        let inputCount = document.getElementById('count_text_create').value;
+    
+        let product = {
+            Name: inputName,
+            Description: inputDescription,
+            Price: parseFloat(inputPrice),
+            Count: parseInt(inputCount)
+        };
+    
+        let response = await fetch('/controller', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(product)
+        });
+    
+        if (response.ok) {
+            location.reload();
+        } else {
+            console.error('Failed to create product');
+        }
+    }
 
 async function onSendUpdateClick(id) {
     let updatedProduct = getProduct(id);
